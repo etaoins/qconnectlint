@@ -13,9 +13,24 @@ ConnectCallChecker::ConnectCallChecker(clang::SourceManager &sourceManager) :
 
 bool ConnectCallChecker::VisitConnectCall(const ConnectCall &call)
 {
-	mReporter.report(call) << "Found QObject::connect "
-		<< "from " << call.sender()->getNameAsString() << " "
-		<< "to " << call.receiver()->getNameAsString() << std::endl;
+	const MetaMethodRef sendMethod(call.sendMethod()); 
+	const MetaMethodRef receiveMethod(call.receiveMethod()); 
+
+	if (!sendMethod.isValid())
+	{
+		mReporter.report(call) << "Can't parse slot reference \"" << sendMethod.rawString() << "\"" << std::endl;
+	}
+	
+	if (!receiveMethod.isValid())
+	{
+		mReporter.report(call) << "Can't parse signal or slot reference \"" << receiveMethod.rawString() << "\"" << std::endl;
+	}
+
+	if (!sendMethod.isValid() || !receiveMethod.isValid())
+	{
+		// Doesn't make sense to continue
+		return true;
+	}
 
 	return true;
 }

@@ -1,6 +1,8 @@
 #ifndef _CONNECTCALL_H
 #define _CONNECTCALL_H
 
+#include "MetaMethodRef.h"
+
 namespace clang
 {
 	class CallExpr;
@@ -23,7 +25,10 @@ public:
 	const clang::CallExpr *expr() const { return mExpr; } 
 
 	const clang::CXXRecordDecl *sender() const { return mSender; }
+	MetaMethodRef sendMethod() const { return mSendMethod; }
+
 	const clang::CXXRecordDecl *receiver() const { return mReceiver; }
+	MetaMethodRef receiveMethod() const { return mReceiveMethod; }
 
 private:
 	ConnectCall(const clang::CallExpr *);
@@ -31,7 +36,10 @@ private:
 	const clang::CallExpr *mExpr;
 
 	const clang::CXXRecordDecl *mSender;
+	MetaMethodRef mSendMethod;
+
 	const clang::CXXRecordDecl *mReceiver;
+	MetaMethodRef mReceiveMethod;
 };
 
 #endif

@@ -3,6 +3,8 @@
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/Expr.h"
+
+#include "MetaMethodRef.h"
 	
 namespace
 {
@@ -56,6 +58,37 @@ namespace
 
 		return nullptr;
 	}
+
+	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr)
+	{
+		const auto *callExpr = clang::dyn_cast<clang::CallExpr>(expr);
+
+		if (!callExpr) 
+		{
+			// XXX: Not a call?
+			return MetaMethodRef();
+		}
+		
+		const clang::FunctionDecl *functionDecl = callExpr->getDirectCallee();
+		
+		if (!functionDecl || (functionDecl->getName() != clang::StringRef("qFlagLocation")))
+		{
+			// Not a call to qFlagLocation
+			return MetaMethodRef();
+		}
+
+		if (callExpr->getNumArgs() != 1)
+		{
+			// I don't get it
+			return MetaMethodRef();
+		}
+
+		const auto *stringLiteral = clang::dyn_cast<clang::StringLiteral>(
+				callExpr->getArg(0)->IgnoreImpCasts());
+
+		// Use Data() so we chop the location data after the \000
+		return MetaMethodRef(stringLiteral->getString().data());
+	}
 }
 
 ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr)
@@ -80,5 +113,8 @@ ConnectCall::ConnectCall(const clang::CallExpr *expr) :
 	}
 
 	// Looks like a connect!
+	mSendMethod = metaMethodRefForArg(expr->getArg(1));
+	mReceiveMethod = metaMethodRefForArg(expr->getArg(3));
+	
 	mExpr = expr;
 }
