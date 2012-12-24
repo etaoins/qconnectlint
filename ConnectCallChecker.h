@@ -3,10 +3,15 @@
 
 #include "ConnectCallVisitor.h"
 
+namespace clang
+{
+	class CompilerInstance;
+}
+
 class ConnectCallChecker : public ConnectCallVisitor
 {
 public:
-	ConnectCallChecker(clang::SourceManager &sourceManager);
+	ConnectCallChecker(clang::CompilerInstance &instance);
 
 	bool VisitConnectCall(const ConnectCall &) override;
 

@@ -4,10 +4,12 @@
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/Expr.h"
 
+#include "clang/Frontend/CompilerInstance.h"
+
 #include "ConnectCall.h"
 
-ConnectCallChecker::ConnectCallChecker(clang::SourceManager &sourceManager) : 
-	mReporter(sourceManager)
+ConnectCallChecker::ConnectCallChecker(clang::CompilerInstance &instance) : 
+	mReporter(instance.getSourceManager())
 {
 }
 

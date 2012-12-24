@@ -21,8 +21,8 @@ using namespace llvm;
 class QConnectLintConsumer : public clang::ASTConsumer
 {
 public:
-	QConnectLintConsumer(clang::SourceManager &sourceManager) :
-		mChecker(sourceManager)
+	QConnectLintConsumer(clang::CompilerInstance &instance) :
+		mChecker(instance)
 	{
 	}
 
@@ -37,9 +37,9 @@ private:
 
 class QConnectLintAction : public clang::ASTFrontendAction
 {
-	virtual clang::ASTConsumer *CreateASTConsumer(clang::CompilerInstance &, clang::StringRef inFile) override
+	virtual clang::ASTConsumer *CreateASTConsumer(clang::CompilerInstance &instance, clang::StringRef inFile) override
 	{
-		return new QConnectLintConsumer(getCompilerInstance().getSourceManager());
+		return new QConnectLintConsumer(instance);
 	}
 };
 
