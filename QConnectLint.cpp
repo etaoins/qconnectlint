@@ -1,8 +1,12 @@
 #include <iostream>
 
+#include "clang/Basic/SourceManager.h"
+
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTContext.h"
+
 #include "clang/Frontend/FrontendActions.h"
+#include "clang/Frontend/CompilerInstance.h"
 
 #include "clang/Tooling/Tooling.h"
 #include "clang/Tooling/CommonOptionsParser.h"
@@ -17,6 +21,11 @@ using namespace llvm;
 class QConnectLintConsumer : public clang::ASTConsumer
 {
 public:
+	QConnectLintConsumer(clang::SourceManager &sourceManager) :
+		mVisitor(sourceManager)
+	{
+	}
+
 	virtual void HandleTranslationUnit(clang::ASTContext &context) override
 	{
 		mVisitor.TraverseDecl(context.getTranslationUnitDecl());
@@ -30,7 +39,7 @@ class QConnectLintAction : public clang::ASTFrontendAction
 {
 	virtual clang::ASTConsumer *CreateASTConsumer(clang::CompilerInstance &, clang::StringRef inFile) override
 	{
-		return new QConnectLintConsumer;
+		return new QConnectLintConsumer(getCompilerInstance().getSourceManager());
 	}
 };
 

@@ -1,6 +1,11 @@
+#include "ConnectCallVisitor.h"
+
 #include <iostream>
 
-#include "ConnectCallVisitor.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/Basic/SourceLocation.h"
+
+#include "Reporter.h"
 
 namespace
 {
@@ -42,6 +47,11 @@ namespace
 	}
 }
 
+ConnectCallVisitor::ConnectCallVisitor(clang::SourceManager &sourceManager) : 
+	mReporter(sourceManager)
+{
+}
+
 bool ConnectCallVisitor::VisitCallExpr(clang::CallExpr *expr)
 {
 	if (!isQObjectConnect(expr))
@@ -49,7 +59,7 @@ bool ConnectCallVisitor::VisitCallExpr(clang::CallExpr *expr)
 		return true;
 	}
 
-	std::cout << "Found QObject::connect" << std::endl;
+	mReporter.report(expr) << "Found QObject::connect" << std::endl;
 
 	return true;
 }
