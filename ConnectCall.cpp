@@ -6,7 +6,7 @@
 	
 namespace
 {
-	bool isQObjectConnect(clang::CallExpr *expr)
+	bool isQObjectConnect(const clang::CallExpr *expr)
 	{
 		// These are needed a lot so keep them around
 		static const clang::StringRef expectedMethodName("connect");
@@ -23,7 +23,7 @@ namespace
 			return false;
 		}
 		
-		if (!methodDecl->isStatic())
+		if (!methodDecl->isStatic() || (expr->getNumArgs() != 5))
 		{
 			// XXX: We only handle the static version for now
 			return false;
@@ -42,19 +42,43 @@ namespace
 
 		return true;
 	}
+
+	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr)
+	{
+		// connect calls generally have a lot of casting
+		const clang::Expr *expr = rawExpr->IgnoreImpCasts();
+
+		// Is this something we trust?
+		if (clang::isa<clang::CXXThisExpr>(expr) || clang::isa<clang::DeclRefExpr>(expr))
+		{
+			return expr->getType().getTypePtr()->getPointeeCXXRecordDecl();
+		}
+
+		return nullptr;
+	}
 }
 
-ConnectCall ConnectCall::fromCallExpr(clang::CallExpr *expr)
+ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr)
 {
-	ConnectCall call;
-
+	return ConnectCall(expr);
+}
+	
+ConnectCall::ConnectCall(const clang::CallExpr *expr) :
+	mExpr(nullptr)
+{
 	if (!isQObjectConnect(expr))
 	{
-		return call;
+		return;
+	}
+
+	mSender = declForArg(expr->getArg(0));
+	mReceiver = declForArg(expr->getArg(2));
+
+	if ((mSender == nullptr) || (mReceiver == nullptr))
+	{
+		return;
 	}
 
 	// Looks like a connect!
-	call.mExpr = expr;
-
-	return call;
+	mExpr = expr;
 }
