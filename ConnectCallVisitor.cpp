@@ -8,11 +8,6 @@
 #include "Reporter.h"
 #include "ConnectCall.h"
 
-ConnectCallVisitor::ConnectCallVisitor(clang::SourceManager &sourceManager) : 
-	mReporter(sourceManager)
-{
-}
-
 bool ConnectCallVisitor::VisitCallExpr(clang::CallExpr *expr)
 {
 	ConnectCall connectCall(ConnectCall::fromCallExpr(expr));
@@ -23,7 +18,5 @@ bool ConnectCallVisitor::VisitCallExpr(clang::CallExpr *expr)
 		return true;
 	}
 
-	mReporter.report(expr) << "Found QObject::connect" << std::endl;
-
-	return true;
+	return VisitConnectCall(connectCall);
 }

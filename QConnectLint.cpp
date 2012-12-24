@@ -12,7 +12,7 @@
 #include "clang/Tooling/CommonOptionsParser.h"
 
 #include "llvm/Support/CommandLine.h"
-#include "ConnectCallVisitor.h"
+#include "ConnectCallChecker.h"
 
 using namespace clang::driver;
 using namespace clang::tooling;
@@ -22,17 +22,17 @@ class QConnectLintConsumer : public clang::ASTConsumer
 {
 public:
 	QConnectLintConsumer(clang::SourceManager &sourceManager) :
-		mVisitor(sourceManager)
+		mChecker(sourceManager)
 	{
 	}
 
 	virtual void HandleTranslationUnit(clang::ASTContext &context) override
 	{
-		mVisitor.TraverseDecl(context.getTranslationUnitDecl());
+		mChecker.TraverseDecl(context.getTranslationUnitDecl());
 	}
 
 private:
-	ConnectCallVisitor mVisitor;
+	ConnectCallChecker mChecker;
 };
 
 class QConnectLintAction : public clang::ASTFrontendAction

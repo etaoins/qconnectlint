@@ -10,14 +10,13 @@ namespace clang
 	class SourceManager;
 }
 
+class ConnectCall;
+
 class ConnectCallVisitor : public clang::RecursiveASTVisitor<ConnectCallVisitor>
 {
 public:
-	ConnectCallVisitor(clang::SourceManager &sourceManager);
 	virtual bool VisitCallExpr(clang::CallExpr *expr);
-
-private:
-	Reporter mReporter;
+	virtual bool VisitConnectCall(const ConnectCall &) = 0;
 };
 
 #endif

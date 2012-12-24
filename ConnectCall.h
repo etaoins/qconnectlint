@@ -19,7 +19,7 @@ public:
 	bool isNull() const { return mExpr != nullptr; }
 
 	// Return the expression for this call
-	operator const clang::CallExpr*() const { return mExpr; } 
+	const clang::CallExpr *expr() const { return mExpr; } 
 
 private:
 	const clang::CallExpr *mExpr;
