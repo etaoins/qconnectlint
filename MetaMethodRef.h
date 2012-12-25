@@ -3,6 +3,13 @@
 
 #include <string>
 
+#include "MetaMethodSignature.h"
+
+namespace clang
+{
+	class CompilerInstance;
+}
+
 enum class MetaMethodType
 {
 	Signal,
@@ -17,15 +24,18 @@ public:
 	{
 	}
 
-	explicit MetaMethodRef(std::string rawString);
+	MetaMethodRef(std::string rawString, clang::CompilerInstance &);
 
 	MetaMethodType type() const { return mType; }
 	bool isValid() const { return type() != MetaMethodType::Invalid; }
 	std::string rawString() const { return mRawString; }
 
+	MetaMethodSignature signature() const { return mSignature; }
+
 private:
 	std::string mRawString;
 	MetaMethodType mType;
+	MetaMethodSignature mSignature;
 };
 
 #endif

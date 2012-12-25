@@ -7,6 +7,7 @@ namespace clang
 {
 	class CallExpr;
 	class CXXRecordDecl;
+	class CompilerInstance;
 }
 
 class ConnectCall
@@ -17,7 +18,7 @@ public:
 	{
 	}
 
-	static ConnectCall fromCallExpr(const clang::CallExpr *);
+	static ConnectCall fromCallExpr(const clang::CallExpr *, clang::CompilerInstance &);
 
 	bool isNull() const { return mExpr != nullptr; }
 
@@ -31,7 +32,7 @@ public:
 	MetaMethodRef receiveMethod() const { return mReceiveMethod; }
 
 private:
-	ConnectCall(const clang::CallExpr *);
+	ConnectCall(const clang::CallExpr *, clang::CompilerInstance &);
 
 	const clang::CallExpr *mExpr;
 

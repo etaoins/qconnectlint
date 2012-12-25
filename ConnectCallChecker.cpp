@@ -9,6 +9,7 @@
 #include "ConnectCall.h"
 
 ConnectCallChecker::ConnectCallChecker(clang::CompilerInstance &instance) : 
+	ConnectCallVisitor(instance),
 	mReporter(instance.getSourceManager())
 {
 }

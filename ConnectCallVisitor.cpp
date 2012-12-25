@@ -7,10 +7,15 @@
 
 #include "Reporter.h"
 #include "ConnectCall.h"
+	
+ConnectCallVisitor::ConnectCallVisitor(clang::CompilerInstance &instance) :
+	mInstance(instance)
+{
+}
 
 bool ConnectCallVisitor::VisitCallExpr(clang::CallExpr *expr)
 {
-	ConnectCall connectCall(ConnectCall::fromCallExpr(expr));
+	ConnectCall connectCall(ConnectCall::fromCallExpr(expr, mInstance));
 
 	// Not a QObject::connect() call
 	if (!connectCall.isNull())

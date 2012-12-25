@@ -59,7 +59,7 @@ namespace
 		return nullptr;
 	}
 
-	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr)
+	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr, clang::CompilerInstance &instance)
 	{
 		const auto *callExpr = clang::dyn_cast<clang::CallExpr>(expr);
 
@@ -87,16 +87,16 @@ namespace
 				callExpr->getArg(0)->IgnoreImpCasts());
 
 		// Use Data() so we chop the location data after the \000
-		return MetaMethodRef(stringLiteral->getString().data());
+		return MetaMethodRef(stringLiteral->getString().data(), instance);
 	}
 }
 
-ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr)
+ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr, clang::CompilerInstance &instance)
 {
-	return ConnectCall(expr);
+	return ConnectCall(expr, instance);
 }
 	
-ConnectCall::ConnectCall(const clang::CallExpr *expr) :
+ConnectCall::ConnectCall(const clang::CallExpr *expr, clang::CompilerInstance &instance) :
 	mExpr(nullptr)
 {
 	if (!isQObjectConnect(expr))
@@ -113,8 +113,8 @@ ConnectCall::ConnectCall(const clang::CallExpr *expr) :
 	}
 
 	// Looks like a connect!
-	mSendMethod = metaMethodRefForArg(expr->getArg(1));
-	mReceiveMethod = metaMethodRefForArg(expr->getArg(3));
+	mSendMethod = metaMethodRefForArg(expr->getArg(1), instance);
+	mReceiveMethod = metaMethodRefForArg(expr->getArg(3), instance);
 	
 	mExpr = expr;
 }

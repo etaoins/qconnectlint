@@ -5,13 +5,23 @@
 
 #include "Reporter.h"
 
+namespace clang
+{
+	class CompilerInstance;
+}
+
 class ConnectCall;
 
 class ConnectCallVisitor : public clang::RecursiveASTVisitor<ConnectCallVisitor>
 {
 public:
+	ConnectCallVisitor(clang::CompilerInstance &);
+
 	virtual bool VisitCallExpr(clang::CallExpr *expr);
 	virtual bool VisitConnectCall(const ConnectCall &) = 0;
+
+private:
+	clang::CompilerInstance &mInstance;
 };
 
 #endif
