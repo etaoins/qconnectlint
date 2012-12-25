@@ -1,4 +1,7 @@
-/Release
-/Debug
+/Release/
+/Release+Asserts/
+/Debug/
+/Debug+Asserts/
+
 .clang_complete
 .*.swp
