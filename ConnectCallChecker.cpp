@@ -49,12 +49,12 @@ bool ConnectCallChecker::VisitConnectCall(const ConnectCall &call)
 
 	if (!sendMethod.isValid())
 	{
-		mReporter.report(call) << "Can't parse raw slot reference \"" << sendMethod.rawString() << "\"" << std::endl;
+		mReporter.report(call) << "Can't parse raw slot reference" << ("\"" + sendMethod.rawString() + "\"");
 	}
 	
 	if (!receiveMethod.isValid())
 	{
-		mReporter.report(call) << "Can't parse raw signal or slot reference \"" << receiveMethod.rawString() << "\"" << std::endl;
+		mReporter.report(call) << "Can't parse raw signal or slot reference" << ("\"" + receiveMethod.rawString() + "\"");
 	}
 
 	if (!sendMethod.isValid() || !receiveMethod.isValid())
@@ -65,12 +65,12 @@ bool ConnectCallChecker::VisitConnectCall(const ConnectCall &call)
 
 	if (!referencedMethodExists(call.sender(), sendMethod))
 	{
-		mReporter.report(call) << "Can't find sender " << sendMethod.spelling() << " on " << call.sender()->getQualifiedNameAsString() << std::endl;
+		mReporter.report(call) << "Can't find sender" << sendMethod.spelling() << "on" << call.sender()->getQualifiedNameAsString();
 	}
 
 	if (!referencedMethodExists(call.receiver(), receiveMethod))
 	{
-		mReporter.report(call) << "Can't find receiver " << receiveMethod.spelling() << " on " << call.receiver()->getQualifiedNameAsString() << std::endl;
+		mReporter.report(call) << "Can't find receiver" << receiveMethod.spelling() << "on" << call.receiver()->getQualifiedNameAsString();
 	}
 
 	return true;
