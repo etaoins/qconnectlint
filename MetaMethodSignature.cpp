@@ -1,5 +1,7 @@
 #include "MetaMethodSignature.h"
 
+#include <cassert>
+
 #include "clang/Lex/Token.h"
 
 namespace
@@ -84,4 +86,32 @@ MetaMethodSignature::MetaMethodSignature(const TokenVector &tokens, ArgumentPars
 	}
 
 	mValid = true;
+}
+	
+std::string MetaMethodSignature::spelling() const
+{
+	if (!isValid())
+	{
+		return "(invalid)";
+	}
+	
+	std::string ret;
+
+	ret += methodName() + "(";
+
+	for(auto it = mArguments.begin();
+	    it != mArguments.end();
+		 it++)
+	{
+		ret += it->spelling();
+
+		if ((it + 1) != mArguments.end())
+		{
+			ret += ", ";
+		}
+	}
+
+	ret += ")";
+
+	return ret;
 }

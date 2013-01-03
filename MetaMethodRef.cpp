@@ -63,5 +63,27 @@ MetaMethodRef::MetaMethodRef(std::string rawString, clang::CompilerInstance &ins
 		mType = MetaMethodType::Signal;
 		break;
 	}
+}
 
+std::string MetaMethodRef::spelling() const
+{
+	if (!isValid())
+	{
+		return "(invalid)";
+	}
+
+	return typeSpelling() + " " + signature().spelling();
+}
+	
+std::string MetaMethodRef::typeSpelling() const
+{
+	switch(type())
+	{
+	case MetaMethodType::Invalid:
+		return "(invalid)";
+	case MetaMethodType::Signal:
+		return "signal";
+	case MetaMethodType::Slot:
+		return "slot";
+	}
 }

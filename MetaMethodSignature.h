@@ -21,6 +21,8 @@ public:
 	std::string methodName() const { return mMethodName; }
 	std::vector<MetaMethodArgument> arguments() const { return mArguments; }
 
+	std::string spelling() const;
+
 private:
 	bool mValid;
 	std::string mMethodName;

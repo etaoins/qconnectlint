@@ -33,6 +33,8 @@ public:
 
 	bool isValid() const { return mBasicType != BasicType::Invalid; }
 
+	std::string spelling() const;
+
 private:
 	MetaMethodArgument(TokenVector::const_iterator begin, TokenVector::const_iterator end, ArgumentParseMode mode);
 

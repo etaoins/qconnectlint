@@ -234,3 +234,38 @@ void MetaMethodArgument::parse(TokenVector::const_iterator begin, TokenVector::c
 		}
 	}
 }
+	
+std::string MetaMethodArgument::spelling() const
+{
+	if (!isValid())
+	{
+		return "(invalid)";
+	}
+
+	std::string ret;
+
+	if (isConst())
+	{
+		ret += "const ";
+	}
+
+	ret += typeIdentifier();
+
+	switch(basicType())
+	{
+	case BasicType::Pointer:
+		ret += " *";
+		break;
+
+	case BasicType::Reference:
+		ret += " &";
+		break;
+
+	case BasicType::Invalid:
+		// Fall through
+	case BasicType::Value:
+		break;
+	}
+
+	return ret;
+}
