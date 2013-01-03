@@ -5,9 +5,20 @@
 #include "clang/AST/Expr.h"
 
 #include "MetaMethodRef.h"
+#include <iostream>
 	
 namespace
 {
+	enum class ArgParseResult
+	{
+		// We don't have enough info to continue linting
+		InsufficentInfo,
+		// This argument looks suspicious
+		SuspiciousArg,
+		// It worked
+		Success
+	};
+
 	bool isQObjectConnect(const clang::CallExpr *expr)
 	{
 		// These are needed a lot so keep them around
@@ -45,7 +56,7 @@ namespace
 		return true;
 	}
 
-	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr)
+	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr, ArgParseResult &parseResult)
 	{
 		// connect calls generally have a lot of casting
 		const clang::Expr *expr = rawExpr->IgnoreImpCasts();
@@ -53,19 +64,22 @@ namespace
 		// Is this something we trust?
 		if (clang::isa<clang::CXXThisExpr>(expr) || clang::isa<clang::DeclRefExpr>(expr))
 		{
+			parseResult = ArgParseResult::Success;
 			return expr->getType().getTypePtr()->getPointeeCXXRecordDecl();
 		}
-
+		
+		parseResult = ArgParseResult::InsufficentInfo;
 		return nullptr;
 	}
 
-	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr, clang::CompilerInstance &instance)
+	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr, clang::CompilerInstance &instance, ArgParseResult &parseResult)
 	{
 		const auto *callExpr = clang::dyn_cast<clang::CallExpr>(expr);
 
 		if (!callExpr) 
 		{
-			// XXX: Not a call?
+			// Not a call - it won't be easy to get a static string value for it
+			parseResult = ArgParseResult::InsufficentInfo;
 			return MetaMethodRef();
 		}
 		
@@ -74,12 +88,14 @@ namespace
 		if (!functionDecl || (functionDecl->getName() != clang::StringRef("qFlagLocation")))
 		{
 			// Not a call to qFlagLocation
+			parseResult = ArgParseResult::InsufficentInfo;
 			return MetaMethodRef();
 		}
 
 		if (callExpr->getNumArgs() != 1)
 		{
 			// I don't get it
+			parseResult = ArgParseResult::SuspiciousArg;
 			return MetaMethodRef();
 		}
 
@@ -87,6 +103,7 @@ namespace
 				callExpr->getArg(0)->IgnoreImpCasts());
 
 		// Use Data() so we chop the location data after the \000
+		parseResult = ArgParseResult::Success;
 		return MetaMethodRef(stringLiteral->getString().data(), instance);
 	}
 }
@@ -99,13 +116,15 @@ ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr, clang::Compil
 ConnectCall::ConnectCall(const clang::CallExpr *expr, clang::CompilerInstance &instance) :
 	mExpr(nullptr)
 {
+	ArgParseResult parseResult;
+	
 	if (!isQObjectConnect(expr))
 	{
 		return;
 	}
 
-	mSender = declForArg(expr->getArg(0));
-	mReceiver = declForArg(expr->getArg(2));
+	mSender = declForArg(expr->getArg(0), parseResult);
+	mReceiver = declForArg(expr->getArg(2), parseResult);
 
 	if ((mSender == nullptr) || (mReceiver == nullptr))
 	{
@@ -113,8 +132,19 @@ ConnectCall::ConnectCall(const clang::CallExpr *expr, clang::CompilerInstance &i
 	}
 
 	// Looks like a connect!
-	mSendMethod = metaMethodRefForArg(expr->getArg(1), instance);
-	mReceiveMethod = metaMethodRefForArg(expr->getArg(3), instance);
+	mSendMethod = metaMethodRefForArg(expr->getArg(1), instance, parseResult);
+
+	if (parseResult == ArgParseResult::InsufficentInfo)
+	{
+		return;
+	}
+
+	mReceiveMethod = metaMethodRefForArg(expr->getArg(3), instance, parseResult);
+	
+	if (parseResult == ArgParseResult::InsufficentInfo)
+	{
+		return;
+	}
 	
 	mExpr = expr;
 }
