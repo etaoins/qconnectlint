@@ -1,4 +1,5 @@
 #include "MetaMethodArgument.h"
+#include "TypeNameParser.h"
 
 #include <string>
 #include <vector>
@@ -38,78 +39,6 @@ namespace
 		return std::string(token.getRawIdentifierData(), token.getLength());
 	}
 
-	std::string consumeTypeName(TokenVector::const_iterator &token, TokenVector::const_iterator end)
-	{
-		std::string typeNameStr;
-
-		int templateDepth = 0;
-		bool colonColonAllowed = true;
-		
-		do
-		{
-			if (token->is(clang::tok::colon) && colonColonAllowed)
-			{
-				typeNameStr += "::";
-				token++;
-
-				// The next token must also be a colon
-				if ((token == end) || token->isNot(clang::tok::colon))
-				{
-					// Not valid
-					return std::string();
-				}
-
-				token++;
-
-				colonColonAllowed = false;
-			}
-			else if (token->is(clang::tok::less))
-			{
-				// Starting a templated parameter
-				typeNameStr += "<";
-				templateDepth++;
-				token++;
-				
-				colonColonAllowed = true;
-			}
-			else if (token->is(clang::tok::greater))
-			{
-				typeNameStr += ">";
-				templateDepth--;
-				token++;
-
-				if (templateDepth < 0)
-				{
-					// We closed a template parameter list that wasn't open
-					return std::string();
-				}
-				
-				colonColonAllowed = false;
-			}
-			else if (token->is(clang::tok::raw_identifier))
-			{
-				typeNameStr += identifierString(*token);
-				token++;
-				
-				colonColonAllowed = true;
-			}
-			else
-			{
-				// Something else
-				break;
-			}
-		}
-		while(token != end);
-
-		if (templateDepth > 1)
-		{
-			// Template parameter list unclosed
-			return std::string();
-		}
-
-		return typeNameStr;
-	}
-
 	// Converts Clang tokens in to higher-level tokens
 	std::vector<ArgToken> retokenize(TokenVector::const_iterator begin, TokenVector::const_iterator end)
 	{
@@ -140,7 +69,7 @@ namespace
 				else
 				{
 					// Treat this as a type name
-					std::string typeNameStr = consumeTypeName(token, end);
+					std::string typeNameStr = TypeNameParser::consumeTypeName(token, end);
 
 					if (typeNameStr.empty())
 					{

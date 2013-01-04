@@ -5,7 +5,6 @@
 #include "clang/AST/Expr.h"
 
 #include "MetaMethodRef.h"
-#include <iostream>
 	
 namespace
 {

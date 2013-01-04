@@ -6,6 +6,12 @@
 #include "MetaMethodArgument.h"
 #include "TokenVector.h"
 
+namespace clang
+{
+	class CompilerInstance;
+	class FunctionDecl;
+}
+
 class MetaMethodSignature
 {
 public:
@@ -14,7 +20,15 @@ public:
 	{
 	}
 
-	MetaMethodSignature(const TokenVector &tokens, ArgumentParseMode);
+	///
+	/// Parses a connect call meta method reference signature from a string
+	///
+	MetaMethodSignature(std::string str, clang::CompilerInstance &instance);
+
+	///
+	/// Parses a declaration signature from a Clang function decl
+	///
+	MetaMethodSignature(const clang::FunctionDecl *decl, clang::CompilerInstance &instance);
 	
 	bool isValid() const { return mValid; }
 
@@ -24,6 +38,8 @@ public:
 	std::string spelling() const;
 
 private:
+	bool parseConnectCallRefTokens(TokenVector::const_iterator begin, TokenVector::const_iterator end);
+
 	bool mValid;
 	std::string mMethodName;
 	std::vector<MetaMethodArgument> mArguments;

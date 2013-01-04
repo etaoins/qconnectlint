@@ -1,7 +1,5 @@
 #include "ConnectCallVisitor.h"
 
-#include <iostream>
-
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/SourceLocation.h"
 

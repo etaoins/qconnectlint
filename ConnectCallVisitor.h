@@ -20,6 +20,11 @@ public:
 	virtual bool VisitCallExpr(clang::CallExpr *expr);
 	virtual bool VisitConnectCall(const ConnectCall &) = 0;
 
+	clang::CompilerInstance &compilerInstance()
+	{
+		return mInstance;
+	}
+
 private:
 	clang::CompilerInstance &mInstance;
 };

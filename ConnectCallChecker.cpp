@@ -8,34 +8,6 @@
 
 #include "ConnectCall.h"
 
-namespace
-{
-	bool referencedMethodExists(const clang::CXXRecordDecl *recordDecl, const MetaMethodRef &ref)
-	{
-		// Try all our methods
-		for(auto it = recordDecl->method_begin(); it != recordDecl->method_end(); it++)
-		{
-			if (it->getNameAsString() == ref.signature().methodName())
-			{
-				return true;
-			}
-		}
-
-		// Try our superclasses recursively
-		for(auto it = recordDecl->bases_begin(); it != recordDecl->bases_end(); it++)
-		{
-			clang::CXXRecordDecl *baseDecl = it->getType()->getAsCXXRecordDecl();
-
-			if (baseDecl && referencedMethodExists(baseDecl, ref))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-}
-
 ConnectCallChecker::ConnectCallChecker(clang::CompilerInstance &instance) : 
 	ConnectCallVisitor(instance),
 	mReporter(instance.getSourceManager())
@@ -74,4 +46,48 @@ bool ConnectCallChecker::VisitConnectCall(const ConnectCall &call)
 	}
 
 	return true;
+}
+	
+bool ConnectCallChecker::referencedMethodExists(const clang::CXXRecordDecl *recordDecl, const MetaMethodRef &ref)
+{
+	// Try all our methods
+	for(auto it = recordDecl->method_begin(); it != recordDecl->method_end(); it++)
+	{
+		if (it->getNameAsString() == ref.signature().methodName())
+		{
+			const clang::CXXMethodDecl *decl = *it;
+
+			// Parse the declaration
+			MetaMethodSignature parsedDecl(decl, compilerInstance());
+
+			if (!parsedDecl.isValid())
+			{
+				// Dump the source text
+				const clang::SourceManager &sm = compilerInstance().getSourceManager();
+				const clang::SourceRange range = decl->getSourceRange();
+
+				const std::string sourceText(
+					sm.getCharacterData(range.getBegin()),
+					sm.getCharacterData(range.getEnd()) + 1);
+
+				mReporter.report(decl) << "Can't parse signal or slot declaration" << ("\"" + sourceText + "\"");
+			}
+
+			// Close enough
+			return true;
+		}
+	}
+
+	// Try our superclasses recursively
+	for(auto it = recordDecl->bases_begin(); it != recordDecl->bases_end(); it++)
+	{
+		clang::CXXRecordDecl *baseDecl = it->getType()->getAsCXXRecordDecl();
+
+		if (baseDecl && referencedMethodExists(baseDecl, ref))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
