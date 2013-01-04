@@ -8,7 +8,7 @@
 #endif
 
 #include "clang/AST/Expr.h"
-#include "clang/Basic/SourceLocation.h"
+#include "clang/AST/Decl.h"
 
 #include "ConnectCall.h"
 
@@ -76,19 +76,29 @@ Reporter::~Reporter()
 		std::cerr << mTotalReports << " connect notices generated" << std::endl;
 	}
 }
-
-ReportStream Reporter::report(const clang::Expr *expr)
+	
+ReportStream Reporter::report(const clang::SourceRange &range)
 {
 	// Track this report
 	mTotalReports++;
 
 	// Print the location
-	std::cerr << boldCode() << expr->getLocStart().printToString(mSourceManager) << ": ";
+	std::cerr << boldCode() << range.getBegin().printToString(mSourceManager) << ": ";
 
 	// Print the "connect" in a different color than warnings or errors
 	std::cerr << connectColorCode() << "connect:" << defaultColorCode();
 
 	return ReportStream();
+}
+
+ReportStream Reporter::report(const clang::Stmt *stmt)
+{
+	return report(stmt->getSourceRange());
+}
+
+ReportStream Reporter::report(const clang::Decl *decl)
+{
+	return report(decl->getSourceRange());
 }
 	
 ReportStream Reporter::report(const ConnectCall &call)

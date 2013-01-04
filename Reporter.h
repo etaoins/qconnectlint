@@ -4,10 +4,13 @@
 #include <iostream>
 #include <string>
 
+#include "clang/Basic/SourceLocation.h"
+
 namespace clang
 {
 	class SourceManager;
-	class Expr;
+	class Stmt;
+	class Decl;
 }
 
 class ConnectCall;
@@ -31,8 +34,11 @@ public:
 	Reporter(clang::SourceManager &sourceManager);
 	~Reporter();
 
-	ReportStream report(const clang::Expr *expr);
+	ReportStream report(const clang::Stmt *stmt);
+	ReportStream report(const clang::Decl *decl);
 	ReportStream report(const ConnectCall &);
+	
+	ReportStream report(const clang::SourceRange &);
 
 	unsigned int totalReports() const 
 	{
