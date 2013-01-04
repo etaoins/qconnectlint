@@ -56,20 +56,11 @@ namespace
 		return true;
 	}
 
-	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr, ArgParseResult &parseResult)
+	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr)
 	{
 		// connect calls generally have a lot of casting
 		const clang::Expr *expr = rawExpr->IgnoreImpCasts();
-
-		// Is this something we trust?
-		if (clang::isa<clang::CXXThisExpr>(expr) || clang::isa<clang::DeclRefExpr>(expr))
-		{
-			parseResult = ArgParseResult::Success;
-			return expr->getType().getTypePtr()->getPointeeCXXRecordDecl();
-		}
-		
-		parseResult = ArgParseResult::InsufficentInfo;
-		return nullptr;
+		return expr->getType().getTypePtr()->getPointeeCXXRecordDecl();
 	}
 
 	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr, clang::CompilerInstance &instance, ArgParseResult &parseResult)
@@ -116,22 +107,21 @@ ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr, clang::Compil
 ConnectCall::ConnectCall(const clang::CallExpr *expr, clang::CompilerInstance &instance) :
 	mExpr(nullptr)
 {
-	ArgParseResult parseResult;
-	
 	if (!isQObjectConnect(expr))
 	{
 		return;
 	}
 
-	mSender = declForArg(expr->getArg(0), parseResult);
-	mReceiver = declForArg(expr->getArg(2), parseResult);
+	mSender = declForArg(expr->getArg(0));
+	mReceiver = declForArg(expr->getArg(2));
 
 	if ((mSender == nullptr) || (mReceiver == nullptr))
 	{
 		return;
 	}
 
-	// Looks like a connect!
+	// Looks like a connect! Parse the meta method references
+	ArgParseResult parseResult;
 	mSendMethod = metaMethodRefForArg(expr->getArg(1), instance, parseResult);
 
 	if (parseResult == ArgParseResult::InsufficentInfo)
