@@ -57,48 +57,9 @@ MetaMethodSignature::MetaMethodSignature(const clang::FunctionDecl *decl, clang:
 	mValid(false)
 {
 	mMethodName = decl->getDeclName().getAsString();
-
-	for(auto it = decl->param_begin();
-	    it != decl->param_end();
-		 it++)
-	{
-		const clang::ParmVarDecl *paramDecl = *it;
-		const clang::SourceManager &sm = instance.getSourceManager();
-
-		bool ateDefault = false;
-		clang::SourceRange range = paramDecl->getSourceRange();
-		const clang::SourceRange defaultArgRange = paramDecl->getDefaultArgRange();
-
-		// Chop off the default arg
-		if (defaultArgRange.isValid())
-		{
-			ateDefault = true;
-			range.getEnd() = defaultArgRange.getBegin().getLocWithOffset(-1);
-		}
-
-		const std::string sourceText(
-			sm.getCharacterData(range.getBegin()),
-			sm.getCharacterData(range.getEnd()));
-
-		TokenVector tokens = tokenizeString(sourceText, instance);
-
-		if (ateDefault && !tokens.empty() && (tokens.back().is(clang::tok::equal)))
-		{
-			// Chop of the trailing =
-			tokens.resize(tokens.size() - 1);
-		}
-
-		MetaMethodArgument arg = MetaMethodArgument(tokens.cbegin(), tokens.cend(), ArgumentParseMode::Declaration);
-
-		if (!arg.isValid())
-		{
-			return;
-		}
-
-		mArguments.push_back(arg);
-	}
-
 	mValid = true;
+
+	// XXX: Handle params
 }
 
 bool MetaMethodSignature::parseConnectCallRefTokens(TokenVector::const_iterator token, TokenVector::const_iterator end)
@@ -129,48 +90,9 @@ bool MetaMethodSignature::parseConnectCallRefTokens(TokenVector::const_iterator 
 	{
 		return false;
 	}
-	token++;
-
-	// Keep going until we get )
-	while(token->isNot(clang::tok::r_paren))
-	{
-		TokenVector::const_iterator argLookAhead = token;
-
-		// Look ahead until comma or )
-		for(;
-		    argLookAhead->isNot(clang::tok::r_paren) && argLookAhead->isNot(clang::tok::comma);
-			 argLookAhead++)
-		{
-		}
-
-		if (token == argLookAhead)
-		{
-			// We hit two commas in a row
-			return false;
-		}
-		else
-		{
-			// We have an argument candidate
-			MetaMethodArgument arg = MetaMethodArgument(token, argLookAhead, ArgumentParseMode::ConnectCall);
-
-			if (!arg.isValid())
-			{
-				return false;
-			}
-
-			// Add the argument on and continue parsing
-			mArguments.push_back(arg);
-			token = argLookAhead;
-
-			if (token->is(clang::tok::r_paren))
-			{
-				// We're done
-				break;
-			}
-			token++;
-		}
-	}
-
+	
+	// XXX: Handle params
+	
 	return true;
 }
 	
@@ -185,17 +107,7 @@ std::string MetaMethodSignature::spelling() const
 
 	ret += methodName() + "(";
 
-	for(auto it = mArguments.begin();
-	    it != mArguments.end();
-		 it++)
-	{
-		ret += it->spelling();
-
-		if ((it + 1) != mArguments.end())
-		{
-			ret += ", ";
-		}
-	}
+	// XXX: Handle params
 
 	ret += ")";
 

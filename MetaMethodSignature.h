@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "MetaMethodArgument.h"
 #include "TokenVector.h"
 
 namespace clang
@@ -33,7 +32,6 @@ public:
 	bool isValid() const { return mValid; }
 
 	std::string methodName() const { return mMethodName; }
-	std::vector<MetaMethodArgument> arguments() const { return mArguments; }
 
 	std::string spelling() const;
 
@@ -42,7 +40,6 @@ private:
 
 	bool mValid;
 	std::string mMethodName;
-	std::vector<MetaMethodArgument> mArguments;
 };
 
 #endif
