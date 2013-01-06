@@ -6,11 +6,11 @@
 #include "Tokenizer.h"
 #include "TypeDeclaration.h"
 
-typedef std::set<clang::Token> TokenSet;
+typedef std::set<clang::tok::TokenKind> TokenKindSet;
 
 namespace DeclarationParser
 {
-	TypeDeclaration consumeType(TokenVector::const_iterator &begin, TokenVector::const_iterator end, bool allowIdentifier, const TokenSet &stopTokens = TokenSet());
+	TypeDeclaration consumeType(TokenVector::const_iterator &begin, TokenVector::const_iterator end, bool allowVarDecl, const TokenKindSet &stopTokens = TokenKindSet());
 }
 
 #endif

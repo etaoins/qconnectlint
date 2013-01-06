@@ -21,7 +21,7 @@ bool TypeDeclaration::operator==(const TypeDeclaration &other) const
 
 	for(Indirection i : indirections())
 	{
-		if (i != *(++otherIt))
+		if (i != *(otherIt++))
 		{
 			return false;
 		}

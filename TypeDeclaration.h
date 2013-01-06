@@ -45,7 +45,7 @@ public:
 		return mTypeName;
 	}
 
-	// The innermost indirection is the first element
+	// The innermost indirection is the last element
 	const IndirectionVector &indirections() const
 	{
 		return mIndirections;

@@ -14,6 +14,10 @@
 #include "llvm/Support/CommandLine.h"
 #include "ConnectCallChecker.h"
 
+#ifdef PARSER_TEST
+#include "test/ParserTest.h"
+#endif
+
 using namespace clang::driver;
 using namespace clang::tooling;
 using namespace llvm;
@@ -39,6 +43,9 @@ class QConnectLintAction : public clang::ASTFrontendAction
 {
 	virtual clang::ASTConsumer *CreateASTConsumer(clang::CompilerInstance &instance, clang::StringRef inFile) override
 	{
+#ifdef PARSER_TEST
+		ParserTest::run(instance);
+#endif
 		return new QConnectLintConsumer(instance);
 	}
 };
