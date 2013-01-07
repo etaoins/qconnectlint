@@ -18,11 +18,19 @@ namespace
 		Success
 	};
 
-	bool isQObjectConnect(const clang::CallExpr *expr)
+	enum class ConnectCallType
+	{
+		Unrecognized,
+		StaticFiveArg,
+		MemberFourArg
+	};
+
+	ConnectCallType exprConnectCallType(const clang::CallExpr *expr)
 	{
 		// These are needed a lot so keep them around
 		static const clang::StringRef expectedMethodName("connect");
 		static const clang::StringRef expectedClassName("QObject");
+		const unsigned int argCount = expr->getNumArgs();
 
 		const clang::Decl *calleeDecl = expr->getCalleeDecl();
 
@@ -32,27 +40,37 @@ namespace
 		if (!methodDecl)
 		{
 			// Nope
-			return false;
+			return ConnectCallType::Unrecognized;
 		}
 		
-		if (!methodDecl->isStatic() || (expr->getNumArgs() != 5))
-		{
-			// XXX: We only handle the static version for now
-			return false;
-		}
+		ConnectCallType callType;
 
+		// Figure out what kind of connect call it is
+		if (methodDecl->isStatic() && (argCount == 5))
+		{
+			callType = ConnectCallType::StaticFiveArg;
+		}
+		else if (!methodDecl->isStatic() && (argCount == 4))
+		{
+			callType = ConnectCallType::MemberFourArg;
+		}
+		else
+		{
+			return ConnectCallType::Unrecognized;
+		}
+		
 		// Check the name of the class and methond
 		if (methodDecl->getName() != expectedMethodName)
 		{
-			return false;
+			return ConnectCallType::Unrecognized;
 		}
 		
 		if (methodDecl->getParent()->getName() != expectedClassName)
 		{
-			return false;
+			return ConnectCallType::Unrecognized;
 		}
-
-		return true;
+		
+		return callType;
 	}
 
 	const clang::CXXRecordDecl *declForArg(const clang::Expr *rawExpr)
@@ -106,29 +124,52 @@ ConnectCall ConnectCall::fromCallExpr(const clang::CallExpr *expr, clang::Compil
 ConnectCall::ConnectCall(const clang::CallExpr *expr, clang::CompilerInstance &instance) :
 	mExpr(nullptr)
 {
-	if (!isQObjectConnect(expr))
+	ConnectCallType callType = exprConnectCallType(expr);
+	unsigned int sendMethodArgIndex = 0;
+	unsigned int receiveMethodArgIndex = 0;
+
+	if (callType == ConnectCallType::Unrecognized)
 	{
 		return;
 	}
-
-	mSender = declForArg(expr->getArg(0));
-	mReceiver = declForArg(expr->getArg(2));
-
-	if ((mSender == nullptr) || (mReceiver == nullptr))
+	else if (callType == ConnectCallType::StaticFiveArg)
 	{
-		return;
-	}
+		mSender = declForArg(expr->getArg(0));
+		sendMethodArgIndex = 1;
+		mReceiver = declForArg(expr->getArg(2));
+		receiveMethodArgIndex = 3;
 
+		if ((mSender == nullptr) || (mReceiver == nullptr))
+		{
+			return;
+		}
+
+	}
+	else if (callType == ConnectCallType::MemberFourArg)
+	{
+		const clang::CXXMemberCallExpr *memberCallExpr = clang::dyn_cast<clang::CXXMemberCallExpr>(expr);
+
+		if (memberCallExpr == nullptr)
+		{
+			return;
+		}
+
+		mReceiver = declForArg(memberCallExpr->getImplicitObjectArgument());
+		mSender = declForArg(memberCallExpr->getArg(0));
+		sendMethodArgIndex = 1;
+		receiveMethodArgIndex = 2;
+	}
+		
 	// Looks like a connect! Parse the meta method references
 	ArgParseResult parseResult;
-	mSendMethod = metaMethodRefForArg(expr->getArg(1), instance, parseResult);
+	mSendMethod = metaMethodRefForArg(expr->getArg(sendMethodArgIndex), instance, parseResult);
 
 	if (parseResult == ArgParseResult::InsufficentInfo)
 	{
 		return;
 	}
 
-	mReceiveMethod = metaMethodRefForArg(expr->getArg(3), instance, parseResult);
+	mReceiveMethod = metaMethodRefForArg(expr->getArg(receiveMethodArgIndex), instance, parseResult);
 	
 	if (parseResult == ArgParseResult::InsufficentInfo)
 	{
