@@ -37,14 +37,14 @@ MetaMethodSignature::MetaMethodSignature(const clang::FunctionDecl *decl, clang:
 		const clang::ParmVarDecl *paramDecl = *it;
 		const clang::SourceManager &sm = instance.getSourceManager();
 
-		bool ateDefault = false;
+		bool hasDefault = false;
 		clang::SourceRange range = paramDecl->getSourceRange();
 		const clang::SourceRange defaultArgRange = paramDecl->getDefaultArgRange();
 
 		// Chop off the default arg
 		if (defaultArgRange.isValid())
 		{
-			ateDefault = true;
+			hasDefault = true;
 			range.getEnd() = defaultArgRange.getBegin().getLocWithOffset(-1);
 		}
 
@@ -54,7 +54,7 @@ MetaMethodSignature::MetaMethodSignature(const clang::FunctionDecl *decl, clang:
 
 		TokenVector tokens = Tokenizer::tokenizeString(sourceText, instance);
 
-		if (ateDefault && !tokens.empty() && (tokens.back().is(clang::tok::equal)))
+		if (hasDefault && !tokens.empty() && (tokens.back().is(clang::tok::equal)))
 		{
 			// Chop of the trailing =
 			tokens.resize(tokens.size() - 1);
@@ -68,7 +68,7 @@ MetaMethodSignature::MetaMethodSignature(const clang::FunctionDecl *decl, clang:
 			return;
 		}
 
-		mArguments.push_back(typeDecl);
+		mArguments.push_back(MetaMethodArgument(typeDecl, hasDefault));
 	}
 
 	mValid = true;
@@ -115,7 +115,7 @@ bool MetaMethodSignature::parseConnectCallRefTokens(TokenVector::const_iterator 
 			return false;
 		}
 
-		mArguments.push_back(typeDecl);
+		mArguments.push_back(MetaMethodArgument(typeDecl, false));
 	}
 	
 	return true;
@@ -136,7 +136,7 @@ std::string MetaMethodSignature::spelling() const
 	    it != mArguments.end();
 	    it++)
 	{
-		ret += it->spelling();
+		ret += it->type().spelling();
 
 		if ((it + 1) != mArguments.end())
 		{
