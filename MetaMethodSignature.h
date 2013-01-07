@@ -2,8 +2,10 @@
 #define _METAMETHODSIGNATURE_H
 
 #include <string>
+#include <vector>
 
 #include "Tokenizer.h"
+#include "TypeDeclaration.h"
 
 namespace clang
 {
@@ -32,6 +34,7 @@ public:
 	bool isValid() const { return mValid; }
 
 	std::string methodName() const { return mMethodName; }
+	std::vector<TypeDeclaration> arguments() const { return mArguments; }
 
 	std::string spelling() const;
 
@@ -40,6 +43,7 @@ private:
 
 	bool mValid;
 	std::string mMethodName;
+	std::vector<TypeDeclaration> mArguments;
 };
 
 #endif
