@@ -7,6 +7,7 @@
 #include <unistd.h>
 #endif
 
+#include "clang/Basic/SourceManager.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/Decl.h"
 
@@ -82,8 +83,9 @@ ReportStream Reporter::report(const clang::SourceRange &range)
 	// Track this report
 	mTotalReports++;
 
-	// Print the location
-	std::cerr << boldCode() << range.getBegin().printToString(mSourceManager) << ": ";
+	// Print the expansion location
+	const clang::SourceLocation expansionLoc(mSourceManager.getExpansionLoc(range.getBegin()));
+	std::cerr << boldCode() << expansionLoc.printToString(mSourceManager) << ": ";
 
 	// Print the "connect" in a different color than warnings or errors
 	std::cerr << connectColorCode() << "connect:" << defaultColorCode();
