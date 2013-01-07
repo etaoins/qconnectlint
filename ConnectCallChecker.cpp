@@ -163,8 +163,10 @@ bool ConnectCallChecker::referencedMethodExists(const clang::CXXRecordDecl *reco
 				continue;
 			}
 
-			// Close enough
-			return argumentsMatch(ref.signature(), parsedDecl);
+			if (argumentsMatch(ref.signature(), parsedDecl))
+			{
+				return true;
+			}
 		}
 	}
 
