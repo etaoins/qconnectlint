@@ -159,6 +159,8 @@ bool ConnectCallChecker::referencedMethodExists(const clang::CXXRecordDecl *reco
 					sm.getCharacterData(range.getEnd()) + 1);
 
 				mReporter.report(decl) << "Can't parse signal or slot declaration" << ("\"" + sourceText + "\"");
+
+				continue;
 			}
 
 			// Close enough
