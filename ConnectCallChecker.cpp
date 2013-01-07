@@ -12,9 +12,12 @@ namespace
 {
 	TypeDeclaration connectNormalizedType(const TypeDeclaration &decl)
 	{
-		// This converts "const Foo &" in to just "Foo"
-		if (decl.isConst() && (decl.indirections().size() == 1) &&
-		    decl.indirections().front() == Indirection::Reference)
+		// This converts "const Foo &" or "const Foo" in to just "Foo"
+		const bool isUnredirected = decl.indirections().empty();
+		const bool isSimpleReference = (decl.indirections().size() == 1) &&
+		                               (decl.indirections().front() == Indirection::Reference);
+
+		if (decl.isConst() && (isUnredirected || isSimpleReference))
 		{
 			return TypeDeclaration(false, decl.typeName(), std::vector<Indirection>()); 
 		}
