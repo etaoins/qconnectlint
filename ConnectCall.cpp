@@ -82,37 +82,55 @@ namespace
 
 	MetaMethodRef metaMethodRefForArg(const clang::Expr *expr, clang::CompilerInstance &instance, ArgParseResult &parseResult)
 	{
-		const auto *callExpr = clang::dyn_cast<clang::CallExpr>(expr);
+		const clang::StringLiteral *stringLiteral = nullptr;
 
-		if (!callExpr) 
+		if (clang::isa<clang::CallExpr>(expr))
 		{
-			// Not a call - it won't be easy to get a static string value for it
+			const auto *callExpr = clang::dyn_cast<clang::CallExpr>(expr);
+			
+			const clang::FunctionDecl *functionDecl = callExpr->getDirectCallee();
+			
+			if (!functionDecl || (functionDecl->getName() != clang::StringRef("qFlagLocation")))
+			{
+				// Not a call to qFlagLocation
+				parseResult = ArgParseResult::InsufficentInfo;
+				return MetaMethodRef();
+			}
+
+			if (callExpr->getNumArgs() != 1)
+			{
+				// I don't get it
+				parseResult = ArgParseResult::SuspiciousArg;
+				return MetaMethodRef();
+			}
+			
+			stringLiteral = clang::dyn_cast<clang::StringLiteral>(callExpr->getArg(0)->IgnoreImpCasts());
+		}
+		else if (clang::isa<clang::StringLiteral>(expr->IgnoreImpCasts()))
+		{
+			// This is a direct string literal
+			stringLiteral = clang::dyn_cast<clang::StringLiteral>(expr->IgnoreImpCasts());
+		}
+		else
+		{
+			// Not sure what this is - it won't be easy to get a static string value for it
 			parseResult = ArgParseResult::InsufficentInfo;
 			return MetaMethodRef();
 		}
-		
-		const clang::FunctionDecl *functionDecl = callExpr->getDirectCallee();
-		
-		if (!functionDecl || (functionDecl->getName() != clang::StringRef("qFlagLocation")))
-		{
-			// Not a call to qFlagLocation
-			parseResult = ArgParseResult::InsufficentInfo;
-			return MetaMethodRef();
-		}
 
-		if (callExpr->getNumArgs() != 1)
-		{
-			// I don't get it
-			parseResult = ArgParseResult::SuspiciousArg;
-			return MetaMethodRef();
-		}
-
-		const auto *stringLiteral = clang::dyn_cast<clang::StringLiteral>(
-				callExpr->getArg(0)->IgnoreImpCasts());
-
-		// Use Data() so we chop the location data after the \000
 		parseResult = ArgParseResult::Success;
-		return MetaMethodRef(stringLiteral->getString().data(), instance);
+
+		std::string methodDataStr = stringLiteral->getString().str();
+
+		// Chop everything off after the first \0 - qFlagLocation encodes the location after that
+		size_t nullPos = methodDataStr.find('\0');
+
+		if (nullPos != std::string::npos)
+		{
+			methodDataStr.resize(nullPos);
+		}
+
+		return MetaMethodRef(methodDataStr, instance);
 	}
 }
 
