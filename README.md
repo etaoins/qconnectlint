@@ -25,7 +25,7 @@ If no database is present the list of source files must be followed with a delim
 $ qconnectlint test1.cpp test2.cpp -- -std=c++11 -Wall -I/usr/include/qt4
 ```
 
-qconnectlint's output mimics Clang's format. This means tools intended to parse the output of Clang (such as Vim compiler plugins) should easily handle lint reports.
+qconnectlint's output mimics Clang's format. This means tools intended to parse the output of Clang should easily handle lint reports. An example Vim compiler plugin is included in the `vim` directory.
 
 # Limitations
 qconnectlint is limited to static analysis using information available at compile time. This has a number of consequences:
