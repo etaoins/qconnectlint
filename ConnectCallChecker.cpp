@@ -117,6 +117,11 @@ bool ConnectCallChecker::VisitConnectCall(const ConnectCall &call)
 		mReporter.report(call) << "Can't find receiver" << receiveMethod.spelling() << "on" << call.receiver()->getQualifiedNameAsString();
 	}
 
+	if (sendMethod.type() != MetaMethodType::Signal)
+	{
+		mReporter.report(call) << "Sender" << sendMethod.spelling() << "is not a signal";
+	}
+
 	if (!signaturesConnectable(sendMethod.signature(), receiveMethod.signature()))
 	{
 		mReporter.report(call) << "Sender" << sendMethod.spelling() << "not compatible with receiver" << receiveMethod.spelling();
