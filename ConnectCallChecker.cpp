@@ -138,6 +138,12 @@ bool ConnectCallChecker::referencedMethodExists(const clang::CXXRecordDecl *reco
 		if (it->getNameAsString() == ref.signature().methodName())
 		{
 			const clang::CXXMethodDecl *decl = *it;
+		
+			// Signals are always protected
+			if ((ref.type() == MetaMethodType::Signal) && (decl->getAccess() != clang::AS_protected))
+			{
+				continue;
+			}
 
 			// Parse the declaration
 			MetaMethodSignature parsedDecl(decl, compilerInstance());
