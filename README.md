@@ -1,5 +1,9 @@
 # Overview
-qconnectlint is a [Clang tool](http://clang.llvm.org/docs/ClangTools.html) for statically verifying the consistency of [signal and slot](http://doc-snapshot.qt-project.org/4.8/signalsandslots.html) connections made with Qt's `QObject::connect`.
+qconnectlint is a [Clang tool](http://clang.llvm.org/docs/ClangTools.html) for statically verifying the consistency of [signal and slot](http://doc-snapshot.qt-project.org/4.8/signalsandslots.html) connections made with Qt's `QObject::connect`. It can detect the following problems:
+
+* Signals or slots not existing with the expected signature
+* Incompatible signal and slot signatures due to types or argument count
+* Slots being used as signals 
 
 # Building
 A recent compiler toolchain supporting C++11 is required. GCC 4.7 or Clang 3.1 should be sufficient. 
